@@ -8,6 +8,8 @@
 #include "SplitFlapWebServer.h"
 #include "JsonSettings.h"
 
+std::vector<int> emptyVector = {};
+
 JsonSettings settings = JsonSettings("config", {
     // General Settings
     {"name", JsonSetting("My Display")},
@@ -19,6 +21,7 @@ JsonSettings settings = JsonSettings("config", {
     // Hardware Settings
     {"moduleCount", JsonSetting(8)},
     {"moduleAddresses", JsonSetting({0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27})},
+    {"multiplexerAddresses", JsonSetting(emptyVector)},  // Empty by default, will be populated with multiplexer addresses
     {"magnetPosition", JsonSetting(730)},
     {"moduleOffsets", JsonSetting({0,0,0,0,0,0,0,0})},
     {"displayOffset", JsonSetting(0)},

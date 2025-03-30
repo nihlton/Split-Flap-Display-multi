@@ -157,6 +157,40 @@
                 Hardware Settings
             </h2>
 
+            <label for="moduleGroupsCount" class="block text-left text-lg mt-4"
+                >Number of Module Groups</label
+            >
+            <input
+                class="w-full p-3 mt-2 text-lg border border-gray-600 rounded-md text-center bg-gray-700 text-gray-100"
+                type="number"
+                x-model="settings.moduleGroupsCount"
+                min="1"
+                max="8"
+                placeholder="1-8"
+            />
+            <div
+                class="w-full p-3 mt-2 text-sm text-white bg-red-500 rounded-md"
+                x-cloak
+                x-show="errors.key === 'moduleGroupsCount'"
+                x-text="errors.message"
+            ></div>
+
+            <label for="tcaAddresses" class="block text-left text-lg mt-4"
+                >Module Group Addresses (comma-separated)</label
+            >
+            <input
+                class="w-full p-3 mt-2 text-lg border border-gray-600 rounded-md text-center bg-gray-700 text-gray-100"
+                type="text"
+                x-model="settings.tcaAddresses"
+                placeholder="Enter addresses"
+            />
+            <div
+                class="w-full p-3 mt-2 text-sm text-white bg-red-500 rounded-md"
+                x-cloak
+                x-show="errors.key === 'tcaAddresses'"
+                x-text="errors.message"
+            ></div>
+
             <label for="moduleCount" class="block text-left text-lg mt-4"
                 >Number of Modules</label
             >
