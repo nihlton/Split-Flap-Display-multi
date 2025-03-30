@@ -6,92 +6,99 @@
 SplitFlapDisplay::SplitFlapDisplay(JsonSettings &settings)
     : settings(settings), numModules(0), numGroups(0), usingMultiplexers(false) {}
 
-void SplitFlapDisplay::init() {
-  // Load common settings
-  numModules = settings.getInt("moduleCount");
-  stepsPerRot = settings.getInt("stepsPerRot");
-  displayOffset = settings.getInt("displayOffset");
-  magnetPosition = settings.getInt("magnetPosition");
-  maxVel = settings.getFloat("maxVel");
-  
-  SDAPin = settings.getInt("sdaPin");
-  SCLPin = settings.getInt("sclPin");
-  
-  // Initialize I2C bus
-  Wire.begin(SDAPin, SCLPin);
-  Wire.setClock(400000);  // Set I2C clock speed to 400kHz
-
-  // Load module addresses and offsets
-  std::vector<int> settingAddresses = settings.getIntVector("moduleAddresses");
-  for (int i = 0; i < numModules && i < MAX_MODULES; i++) {
-    moduleAddresses[i] = (uint8_t)settingAddresses[i];
-  }
-
-  std::vector<int> settingOffsets = settings.getIntVector("moduleOffsets");
-  for (int i = 0; i < numModules && i < MAX_MODULES; i++) {
-    moduleOffsets[i] = settingOffsets[i];
-  }
-
-  // Check if multiplexerAddresses setting exists
-  // We use a try-catch because find() throws an exception if the key doesn't exist
-  try {
-    std::vector<int> settingMultiplexers = settings.getIntVector("multiplexerAddresses");
-    usingMultiplexers = (settingMultiplexers.size() > 0);
+    void SplitFlapDisplay::init() {
+      // Load common settings
+      stepsPerRot = settings.getInt("stepsPerRot");
+      displayOffset = settings.getInt("displayOffset");
+      magnetPosition = settings.getInt("magnetPosition");
+      maxVel = settings.getFloat("maxVel");
+      
+      SDAPin = settings.getInt("sdaPin");
+      SCLPin = settings.getInt("sclPin");
+      
+      // Initialize I2C bus
+      Wire.begin(SDAPin, SCLPin);
+      Wire.setClock(400000);  // Set I2C clock speed to 400kHz
     
-    if (usingMultiplexers) {
-      // Initialize with multiplexers
-      numGroups = settingMultiplexers.size();
-      if (numGroups > MAX_GROUPS) {
-        numGroups = MAX_GROUPS;  // Limit to max groups
-        Serial.println("Warning: Too many multiplexers defined. Limited to " + String(MAX_GROUPS));
+      // Load module addresses and offsets
+      std::vector<int> settingAddresses = settings.getIntVector("moduleAddresses");
+      std::vector<int> settingOffsets = settings.getIntVector("moduleOffsets");
+      
+      // Store module configuration - derive modulesPerGroup from moduleAddresses size
+      modulesPerGroup = settingAddresses.size();
+      if (modulesPerGroup > MAX_MODULES) {
+        modulesPerGroup = MAX_MODULES;
+        Serial.println("Warning: Too many module addresses defined. Limited to " + String(MAX_MODULES));
       }
       
-      // Store multiplexer addresses
-      for (int i = 0; i < numGroups; i++) {
-        multiplexerAddresses[i] = (uint8_t)settingMultiplexers[i];
+      // Store the module addresses and offsets
+      for (int i = 0; i < modulesPerGroup; i++) {
+        moduleAddresses[i] = (uint8_t)settingAddresses[i];
+        moduleOffsets[i] = settingOffsets[i];
       }
-      
-      // Calculate how many modules we have in total (might be less than numModules)
-      int totalModules = numModules;
-      if (totalModules > numGroups * MAX_MODULES_PER_GROUP) {
-        totalModules = numGroups * MAX_MODULES_PER_GROUP;
-      }
-      
-      Serial.println("Initializing with " + String(numGroups) + " module groups and " + 
-                    String(totalModules) + " total modules");
-      
-      // Initialize module groups
-      int moduleIndex = 0;
-      for (int i = 0; i < numGroups; i++) {
-        // Create a new module group
-        groups[i] = ModuleGroup(
-          multiplexerAddresses[i],  
-          stepsPerRot,              
-          displayOffset,            
-          magnetPosition            
-        );
+    
+      // Check if multiplexerAddresses setting exists
+      try {
+        std::vector<int> settingMultiplexers = settings.getIntVector("multiplexerAddresses");
+        usingMultiplexers = (settingMultiplexers.size() > 0);
         
-        // Add modules to the group
-        int modulesInGroup = 0;
-        while (moduleIndex < totalModules && modulesInGroup < MAX_MODULES_PER_GROUP) {
-          groups[i].addModule(moduleAddresses[modulesInGroup], moduleOffsets[moduleIndex]);
-          moduleIndex++;
-          modulesInGroup++;
+        if (usingMultiplexers) {
+          // Initialize with multiplexers
+          numGroups = settingMultiplexers.size();
+          if (numGroups > MAX_GROUPS) {
+            numGroups = MAX_GROUPS;  // Limit to max groups
+            Serial.println("Warning: Too many multiplexers defined. Limited to " + String(MAX_GROUPS));
+          }
+          
+          // Calculate total number of modules
+          numModules = numGroups * modulesPerGroup;
+          Serial.println("Initializing with " + String(numGroups) + " module groups, " +
+                        String(modulesPerGroup) + " modules per group, " +
+                        String(numModules) + " total modules");
+          
+          // Store multiplexer addresses
+          for (int i = 0; i < numGroups; i++) {
+            multiplexerAddresses[i] = (uint8_t)settingMultiplexers[i];
+          }
+          
+          // Print debugging info
+          Serial.print("Module Offsets: ");
+          for (int i = 0; i < modulesPerGroup; i++) {
+            Serial.print(moduleOffsets[i]);
+            Serial.print(" ");
+          }
+          Serial.println();
+          
+          // Initialize module groups
+          for (int i = 0; i < numGroups; i++) {
+            // Create a new module group
+            groups[i] = ModuleGroup(
+              multiplexerAddresses[i],  
+              stepsPerRot,              
+              displayOffset,            
+              magnetPosition            
+            );
+            
+            // Add modules to the group - all groups have the same number of modules
+            for (int j = 0; j < modulesPerGroup; j++) {
+              groups[i].addModule(moduleAddresses[j], moduleOffsets[j]);
+            }
+            
+            // Initialize the group
+            groups[i].init();
+          }
+        } else {
+          // Fall back to direct connection
+          numModules = modulesPerGroup;
+          initializeDirectConnection();
         }
-        
-        // Initialize the group
-        groups[i].init();
+      } catch (const std::runtime_error&) {
+        // If the multiplexerAddresses key doesn't exist, use direct connection
+        usingMultiplexers = false;
+        numModules = modulesPerGroup;
+        initializeDirectConnection();
       }
-    } else {
-      // Fall back to direct connection
-      initializeDirectConnection();
     }
-  } catch (const std::runtime_error&) {
-    // If the multiplexerAddresses key doesn't exist, use direct connection
-    usingMultiplexers = false;
-    initializeDirectConnection();
-  }
-}
 
 // Initialize modules with direct connection (original code)
 void SplitFlapDisplay::initializeDirectConnection() {

@@ -157,57 +157,27 @@
                 Hardware Settings
             </h2>
 
-            <label for="moduleGroupsCount" class="block text-left text-lg mt-4"
-                >Number of Module Groups</label
-            >
-            <input
-                class="w-full p-3 mt-2 text-lg border border-gray-600 rounded-md text-center bg-gray-700 text-gray-100"
-                type="number"
-                x-model="settings.moduleGroupsCount"
-                min="1"
-                max="8"
-                placeholder="1-8"
-            />
-            <div
-                class="w-full p-3 mt-2 text-sm text-white bg-red-500 rounded-md"
-                x-cloak
-                x-show="errors.key === 'moduleGroupsCount'"
-                x-text="errors.message"
-            ></div>
-
-            <label for="tcaAddresses" class="block text-left text-lg mt-4"
+            <label
+                for="multiplexerAddresses"
+                class="block text-left text-lg mt-4"
                 >Module Group Addresses (comma-separated)</label
             >
             <input
                 class="w-full p-3 mt-2 text-lg border border-gray-600 rounded-md text-center bg-gray-700 text-gray-100"
                 type="text"
-                x-model="settings.tcaAddresses"
+                x-model="settings.multiplexerAddresses"
                 placeholder="Enter addresses"
             />
             <div
                 class="w-full p-3 mt-2 text-sm text-white bg-red-500 rounded-md"
                 x-cloak
-                x-show="errors.key === 'tcaAddresses'"
+                x-show="errors.key === 'multiplexerAddresses'"
                 x-text="errors.message"
             ></div>
-
-            <label for="moduleCount" class="block text-left text-lg mt-4"
-                >Number of Modules</label
-            >
-            <input
-                class="w-full p-3 mt-2 text-lg border border-gray-600 rounded-md text-center bg-gray-700 text-gray-100"
-                type="number"
-                x-model="settings.moduleCount"
-                min="1"
-                max="8"
-                placeholder="1-8"
-            />
-            <div
-                class="w-full p-3 mt-2 text-sm text-white bg-red-500 rounded-md"
-                x-cloak
-                x-show="errors.key === 'moduleCount'"
-                x-text="errors.message"
-            ></div>
+            <div class="text-sm text-gray-400 mt-1 ml-1">
+                Multiplexer Addresses. Leave blank if you're not using
+                multiplexing
+            </div>
 
             <label for="moduleAddresses" class="block text-left text-lg mt-4"
                 >Module Addresses (comma-separated)</label
@@ -224,6 +194,10 @@
                 x-show="errors.key === 'moduleAddresses'"
                 x-text="errors.message"
             ></div>
+            <div class="text-sm text-gray-400 mt-1 ml-1">
+                If you're using multiplexing, its assumed each group will have
+                the same number of modules, with the same addresses
+            </div>
 
             <label for="magnetPosition" class="block text-left text-lg mt-4"
                 >Magnet Position</label

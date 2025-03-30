@@ -19,7 +19,6 @@ JsonSettings settings = JsonSettings("config", {
     {"ssid", JsonSetting("")},
     {"password", JsonSetting("")},
     // Hardware Settings
-    {"moduleCount", JsonSetting(8)},
     {"moduleAddresses", JsonSetting({0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27})},
     {"multiplexerAddresses", JsonSetting(emptyVector)},  // Empty by default, will be populated with multiplexer addresses
     {"magnetPosition", JsonSetting(730)},

@@ -33,7 +33,7 @@ public:
   void testRandom(float speed = MAX_RPM);
   int getNumModules() { return numModules; }
 
-private:
+  private:
   JsonSettings &settings;
 
   bool checkAllFalse(bool array[], int size);
@@ -41,8 +41,12 @@ private:
   void startMotors();
   void initializeDirectConnection(); // Added declaration for initializeDirectConnection
 
+  // Module configuration
+  int numModules;            // Total number of modules (derived, not from settings)
+  int modulesPerGroup;       // Number of modules in each group
+  int numGroups;             // Number of module groups
+  
   // Original direct-connected module properties
-  int numModules;
   uint8_t moduleAddresses[MAX_MODULES];
   SplitFlapModule modules[MAX_MODULES];
   int moduleOffsets[MAX_MODULES];
